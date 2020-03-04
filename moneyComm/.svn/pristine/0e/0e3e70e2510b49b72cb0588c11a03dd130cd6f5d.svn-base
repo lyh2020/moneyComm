@@ -1,0 +1,273 @@
+package com.li.bean;
+
+import java.util.HashMap;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
+/**
+ * 封住请求返回的参数 ddddd
+ * @author Legend、
+ */
+public class Result {
+    //result.getcontent()是gzip的转换成string的方法
+    //EntityUtils.toString(new GzipDecompressingEntity(responseEntity)); 
+    //String t = EntityUtils.toString(new GzipDecompressingEntity(result.getHttpEntity()), "utf-8");
+    private String cookie;
+
+    private int statusCode;
+
+    private HashMap<String, Header> headerAll;
+
+    private HttpEntity httpEntity;
+
+    private DefaultHttpClient client;
+
+    private String charSet;
+
+    /**请求后得到的网页源码内容，不经处理的原样返回*/
+    private String content;
+
+    /**请求后得到的网页源码内容，替换掉回车的*/
+    private String contentStr;
+
+    /**请求后得到的网页源码内容，按回车分割*/
+    private String contentArr[];
+
+    private HttpResponse response;
+
+    public HttpResponse getResponse() {
+        return response;
+    }
+
+    public void setResponse(HttpResponse response) {
+        this.response = response;
+    }
+
+    public String getCookie() {
+        return cookie;
+    }
+
+    public void setCookie(String cookie) {
+        this.cookie = cookie;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public HashMap<String, Header> getHeaders() {
+        return headerAll;
+    }
+
+    public void setHeaders(Header[] headers) {
+        headerAll = new HashMap<String, Header>();
+        for (Header header : headers) {
+            headerAll.put(header.getName(), header);
+        }
+    }
+
+    public HttpEntity getHttpEntity() {
+        return httpEntity;
+    }
+
+    public void setHttpEntity(HttpEntity httpEntity) {
+        this.httpEntity = httpEntity;
+    }
+
+    public DefaultHttpClient getClient() {
+        return client;
+    }
+
+    public void setClient(DefaultHttpClient client) {
+        this.client = client;
+    }
+
+    /**
+     * 请求后得到的网页源码内容，不经处理的原样返回
+     * @return
+     * @author liangyh
+     */
+    public String getContent() {
+        try {
+            this.content = EntityUtils.toString(this.httpEntity, charSet == null ? "utf-8" : charSet);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return content;
+    }
+
+    /**
+     * 返回经过replaceAll("(\r\n)*", "")的一行str
+     * @return
+     * @author liangyh
+     */
+    public String getContentStr() {
+        try {
+            this.contentStr = EntityUtils.toString(this.httpEntity, charSet == null ? "utf-8" : charSet).replaceAll(
+                    "(\r\n)*", "");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return contentStr;
+    }
+
+    public void setContentStr(String contentStr) {
+        this.contentStr = contentStr;
+    }
+
+    /**
+     * 返回经过split("\n")分割的多行arr
+     * @return
+     * @author liangyh
+     */
+    public String[] getContentArr() {
+        try {
+            String jsonRet = EntityUtils.toString(httpEntity, charSet == null ? "utf-8" : charSet);
+            contentArr = jsonRet.split("\n");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return contentArr;
+    }
+
+    /**
+     * 返回经过split("\n")分割的多行arr
+     * @param srcContent 未分割的content string
+     * @return
+     * @author liangyh
+     */
+    public String[] getContentArr(StringBuffer srcContent) {
+        try {
+            String jsonRet = EntityUtils.toString(httpEntity, charSet == null ? "utf-8" : charSet);
+            srcContent.append(jsonRet);
+            contentArr = jsonRet.split("\n");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return contentArr;
+    }
+
+    public void setContentArr(String[] contentArr) {
+        this.contentArr = contentArr;
+    }
+
+    /**
+     * 取得header 中的location，如果有的话
+     * @return
+     * @author: lyh
+     */
+    public String getLocation() {
+        Header header = null;
+        HashMap<String, Header> headHashMap = this.getHeaders();
+        if (headHashMap != null) {
+            header = headHashMap.get("Location");
+        }
+
+        return (header == null ? "" : header.getValue());
+    }
+
+    /**
+     * 根据cookie name 取得相应的cookie值
+     * @param cookieSrc  可以为空
+     * @param cookieName
+     * @return
+     * @author: lyh
+     */
+    public String getCookieByName(String cookieSrc, String cookieName) {
+        try {
+            // AuthCookie=4BFFD62B611D896E6BAE9E3BED7CC2F7194799A74533144728747ABD9B7EB686BF0E83120CCB011E99A623C400A34B158AEDBBADC89F6FEFA057F29D2CB9D58DA6007AE70E7860D5AFB8B7FAAA11EAAB657CA808FA71C17F927D90F620F527C575645DB4D988DEA8;Domain=baihe.com;Expires=Mon%2C+31-Dec-2063+14%3A26%3A07+GMT;GCEmail=13499588150%40mobile.baihe.com;GCUserID=87228091;Hm_lpvt_67f7e4ac926d21bbfd588ec02b69b70a=1389536766;Hm_lvt_67f7e4ac926d21bbfd588ec02b69b70a=1389536766;JSESSIONID=D0007F9FFEC7785927DBD7D24626D641;LoginEmail=13499588150%40mobile.baihe.com;PHPSESSID=33f699b8ce117963656261d84ae38f49;Path=%2F;Token=87228091%7CCA33255E178C5F26716A5D42BA4451F4;gender=false;logintime=1389536766;msgcount=16;name=PKDXe;pass=gU02AgFCl%2Fyc8jF7qIubEQ%23%23;uid=87228091;userBaihe_channel=3g;userCity_level=1
+            String cookie = StringUtils.isEmpty(cookieSrc) ? this.getCookie() : cookieSrc;
+            if (!cookie.contains(";")) {
+                return "";
+            }
+
+            String match = cookieName + "=";
+            String arr[] = cookie.split(";");
+            for (String temp : arr) {
+                if (temp.contains(match)) {
+                    return temp.split(match)[1];
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    /**
+     * 打印所有相关信息，打印完毕后系统退出
+     * @param exit true=执行完毕后系统退出，false=不退出
+     * @param printInLine 按照一行行的打印出来
+     * @author: lyh
+     */
+    public void printAll(boolean exit, boolean printInLine) {
+        System.err.println("Cookie:" + this.getCookie());
+        Header header = this.getHeaders().get("Location");
+        System.err.println("Location:" + (header == null ? "" : header.getValue()));
+        if (printInLine) {
+            String temp[] = this.getContentArr();
+            for (String str : temp) {
+                System.out.println(str);
+            }
+        }
+        else {
+            System.err.println("content:" + this.getContentStr());
+        }
+
+        if (exit) {
+            System.exit(0);
+        }
+    }
+
+    /**
+     * 打印所有相关信息
+     * @author: lyh
+     */
+    public void printAll() {
+        System.err.println("Cookie:" + this.getCookie());
+        Header header = this.getHeaders().get("Location");
+        System.err.println("Location:" + (header == null ? "" : header.getValue()));
+        String temp[] = this.getContentArr();
+        for (String str : temp) {
+            System.out.println(str);
+        }
+    }
+
+    /**
+     * 打印cookie,location相关信息，打印完毕后系统退出
+     * @param exit true=执行完毕后系统退出，false=不退出
+     * @author: lyh
+     */
+    public void printTwo(boolean exit) {
+        System.err.println("Cookie:" + this.getCookie());
+        Header header = this.getHeaders().get("Location");
+        System.err.println("Location:" + (header == null ? "" : header.getValue()));
+
+        if (exit) {
+            System.exit(0);
+        }
+    }
+
+    public String getCharSet() {
+        return charSet;
+    }
+
+    public void setCharSet(String charSet) {
+        this.charSet = charSet;
+    }
+
+}
